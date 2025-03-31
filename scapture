@@ -201,7 +201,7 @@ if [ "$MODULE" == "PAScall" ]; then
 	echo "threads: "$MEGAthread
 	echo "poly(a) database file: "$POLYADB
 	echo -n "scapture PAScall: create command line. "; date
-#	echo "Note: for 10x Genomics, library strand information is: [ + -> -F 0x10 ] [ - -> -f 0x10 ]"
+	echo "Note: for 10x Genomics, library strand information is: [ + -> -F 0x10 ] [ - -> -f 0x10 ]"
 	if [ -d $OUTDIR ]; then
 		rm -rf $OUTDIR
 		mkdir $OUTDIR; mkdir $OUTDIR/Per_Gene
@@ -209,15 +209,15 @@ if [ "$MODULE" == "PAScall" ]; then
 		mkdir $OUTDIR; mkdir $OUTDIR/Per_Gene
 	fi
 	
-	#echo -n "scapture PAScall: estimate gene expression, and filter out gene without reads."; date
+	echo -n "scapture PAScall: estimate gene expression, and filter out gene without reads."; date
 	featureCounts -a $ANNO".genetype.gtf" -g transcript_id -Q 3 -s 1 -M -O --fraction -T 4 -o $PREFIX".featureCount.txt" $BAMFILE &> $PREFIX".featureCount.log"	
 	cat $PREFIX".featureCount.txt" | perl -alne 'if($#ARGV==0){next if $_ =~ /^#/ | $F[0] eq "Geneid"; @s=split(/\|/,$F[0]); $count{$F[0]}=$F[$#F];}else{ $c=0;$c=$count{$F[0]} if $count{$F[0]}; $,="\t"; print $c,@F; }' - $ANNO".genetype.txt" > $PREFIX".genetype.count.txt"
 	
-	#echo -n "scapture PAScall: create command line for transcript level peak calling."; date
+	echo -n "scapture PAScall: create command line for transcript level peak calling."; date
 	perl -alne 'if($#ARGV==0){ @s=split(/\|/,$F[1]);$gene{$s[0]}+=$F[0];}else{$F[3]=~/(.+)\|(.+)/;$genename=$1; next unless $gene{$genename}; print " -g $genename --locus $F[0]:$F[1]-$F[2] -s $F[5]" if $gene{$genename} > 0;}' $PREFIX".genetype.count.txt" $ANNO".genetype.extended.bed" | parallel echo "scapture_callpeak -o "$OUTDIR"/Per_Gene/scapture -c "$PREFIX".genetype.count.txt -b "$BAMFILE" -l "$FragLength" --cs "$ANNO".chromsize -w "$PeakWidth" --overlap "$OverlapRatio {} > $PREFIX".CallPasPerGene.sh"
 	rm $PREFIX".featureCount.txt" $PREFIX".featureCount.txt.summary" $PREFIX".featureCount.log"	
 	
-	#echo $PREFIX".genetype.count.txt" $PREFIX".CallPasPerGene.sh"
+	echo $PREFIX".genetype.count.txt" $PREFIX".CallPasPerGene.sh"
 	wait
 	echo -n "scapture PAScall: create command line done. "; date
 	MODULE="PAScall2"
